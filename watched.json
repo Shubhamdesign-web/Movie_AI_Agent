@@ -1,0 +1,92 @@
+{
+  "preferences": {
+    "languages": [
+      "English",
+      "Hindi",
+      "Malayalam",
+      "Kannada",
+      "Tamil"
+    ],
+
+    "content_types": [
+      "movies",
+      "tv_shows",
+      "web_series"
+    ],
+
+    "favorite_genres": [
+      "psychological thriller",
+      "mind-bending sci-fi",
+      "crime drama",
+      "dark comedy",
+      "intelligent storytelling"
+    ],
+
+    "avoid": [
+      "soap drama",
+      "generic teenage drama",
+      "overly predictable stories"
+    ]
+  },
+
+  "liked": [
+    {
+      "title": "Interstellar",
+      "type": "movie",
+      "language": "English",
+      "rating": 10,
+      "liked_elements": [
+        "space",
+        "emotion",
+        "philosophy",
+        "music"
+      ]
+    },
+
+    {
+      "title": "Dark",
+      "type": "tv_show",
+      "language": "German",
+      "rating": 9,
+      "liked_elements": [
+        "time travel",
+        "mystery",
+        "mind-bending",
+        "serious tone"
+      ]
+    },
+
+    {
+      "title": "Breaking Bad",
+      "type": "tv_show",
+      "language": "English",
+      "rating": 10,
+      "liked_elements": [
+        "character development",
+        "crime",
+        "tension",
+        "writing"
+      ]
+    },
+
+    {
+      "title": "Drishyam",
+      "type": "movie",
+      "language": "Malayalam",
+      "rating": 9,
+      "liked_elements": [
+        "smart writing",
+        "family tension",
+        "crime",
+        "suspense"
+      ]
+    }
+  ],
+
+  "disliked": [
+    {
+      "title": "Riverdale",
+      "reason": "too dramatic and unrealistic"
+    }
+  ]
+}
