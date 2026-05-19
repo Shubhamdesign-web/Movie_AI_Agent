@@ -110,27 +110,6 @@ user_taste = [
 candidate_content = [
 
     {
-        "title": "Dark",
-        "language": "English",
-        "type": "TV Shows",
-        "description": "time travel mystery with existential philosophy and emotional complexity"
-    },
-
-    {
-        "title": "Severance",
-        "language": "English",
-        "type": "TV Shows",
-        "description": "psychological corporate thriller exploring identity and isolation"
-    },
-
-    {
-        "title": "Arrival",
-        "language": "English",
-        "type": "Movies",
-        "description": "emotionally intelligent sci-fi exploring communication and time"
-    },
-
-    {
         "title": "Joji",
         "language": "Malayalam",
         "type": "Movies",
@@ -156,6 +135,27 @@ candidate_content = [
         "language": "Malayalam",
         "type": "Movies",
         "description": "survival thriller based on friendship, fear and emotional resilience"
+    },
+
+    {
+        "title": "Dark",
+        "language": "English",
+        "type": "TV Shows",
+        "description": "time travel mystery with existential philosophy and emotional complexity"
+    },
+
+    {
+        "title": "Severance",
+        "language": "English",
+        "type": "TV Shows",
+        "description": "psychological corporate thriller exploring identity and isolation"
+    },
+
+    {
+        "title": "Arrival",
+        "language": "English",
+        "type": "Movies",
+        "description": "emotionally intelligent sci-fi exploring communication and time"
     },
 
     {
@@ -202,13 +202,13 @@ def get_platform(title):
 
     platform_map = {
 
-        "Dark": "Netflix",
-        "Severance": "Apple TV+",
-        "Arrival": "Amazon Prime Video",
         "Joji": "Amazon Prime Video",
         "Kumbalangi Nights": "Amazon Prime Video",
         "Bramayugam": "Sony LIV",
         "Manjummel Boys": "Disney+ Hotstar",
+        "Dark": "Netflix",
+        "Severance": "Apple TV+",
+        "Arrival": "Amazon Prime Video",
         "The Bear": "JioHotstar",
         "Paatal Lok": "Amazon Prime Video",
         "Signal": "Netflix",
@@ -231,7 +231,7 @@ def get_movie_data(title):
     return response.json()
 
 # ---------------------------------------------------
-# OPENAI EMBEDDINGS
+# OPENAI EMBEDDING FUNCTION
 # ---------------------------------------------------
 
 def get_embedding(text):
@@ -257,10 +257,8 @@ if generate:
 
     with st.spinner("Analyzing semantic taste profile..."):
 
-        # Combine taste + mood
         combined_taste = " ".join(user_taste) + " " + mood
 
-        # User embedding
         user_embedding = get_embedding(
             combined_taste
         )
@@ -282,17 +280,23 @@ if generate:
                 [content_embedding]
             )[0][0]
 
-            # Base semantic score
+            # ---------------------------------------------------
+            # FINAL SCORE
+            # ---------------------------------------------------
+
             final_score = similarity * 100
 
-            # ---------------------------------------------------
-            # LANGUAGE BOOST
-            # ---------------------------------------------------
-
+            # STRONG LANGUAGE PRIORITY
             if item["language"] in languages:
-                final_score += 15
+
+                final_score += 30
+
+            else:
+
+                final_score -= 20
 
             recommendations.append({
+
                 "title": item["title"],
                 "language": item["language"],
                 "type": item["type"],
@@ -309,7 +313,6 @@ if generate:
             reverse=True
         )
 
-        # Save in session state
         st.session_state.recommendations = recommendations
 
         st.session_state.generated = True
@@ -375,10 +378,6 @@ if st.session_state.generated:
             st.write(
                 item["description"]
             )
-
-            # ---------------------------------------------------
-            # FEEDBACK BUTTONS
-            # ---------------------------------------------------
 
             col1, col2 = st.columns(2)
 
