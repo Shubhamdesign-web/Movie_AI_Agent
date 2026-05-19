@@ -1,9 +1,7 @@
 import streamlit as st
 from openai import OpenAI
 from sklearn.metrics.pairwise import cosine_similarity
-import numpy as np
 import requests
-import random
 
 # ---------------------------------------------------
 # PAGE CONFIG
@@ -26,6 +24,16 @@ client = OpenAI(
 OMDB_API_KEY = st.secrets["OMDB_API_KEY"]
 
 # ---------------------------------------------------
+# SESSION STATE
+# ---------------------------------------------------
+
+if "recommendations" not in st.session_state:
+    st.session_state.recommendations = []
+
+if "generated" not in st.session_state:
+    st.session_state.generated = False
+
+# ---------------------------------------------------
 # TITLE
 # ---------------------------------------------------
 
@@ -36,7 +44,7 @@ st.write(
 )
 
 # ---------------------------------------------------
-# USER PREFERENCES
+# SIDEBAR
 # ---------------------------------------------------
 
 st.sidebar.header("🎭 Your Preferences")
@@ -183,7 +191,7 @@ def get_embedding(text):
 generate = st.button("🎯 Generate Semantic Recommendations")
 
 # ---------------------------------------------------
-# MAIN LOGIC
+# MAIN RECOMMENDATION LOGIC
 # ---------------------------------------------------
 
 if generate:
@@ -193,7 +201,7 @@ if generate:
         # Combine user taste + mood
         combined_taste = " ".join(user_taste) + " " + mood
 
-        # User embedding
+        # Generate user embedding
         user_embedding = get_embedding(
             combined_taste
         )
@@ -227,15 +235,24 @@ if generate:
             reverse=True
         )
 
-    st.success("Semantic Recommendations Ready 🎬")
+        # Save in session state
+        st.session_state.recommendations = recommendations
 
-    # ---------------------------------------------------
-    # DISPLAY UI CARDS
-    # ---------------------------------------------------
+        st.session_state.generated = True
+
+# ---------------------------------------------------
+# DISPLAY UI
+# ---------------------------------------------------
+
+if st.session_state.generated:
+
+    st.success("Semantic Recommendations Ready 🎬")
 
     cols = st.columns(2)
 
-    for idx, item in enumerate(recommendations[:6]):
+    for idx, item in enumerate(
+        st.session_state.recommendations[:6]
+    ):
 
         movie = get_movie_data(item["title"])
 
@@ -280,19 +297,32 @@ if generate:
                 item["description"]
             )
 
-            # Feedback buttons
+            # ---------------------------------------------------
+            # FEEDBACK BUTTONS
+            # ---------------------------------------------------
+
             col1, col2 = st.columns(2)
 
             with col1:
-                st.button(
+
+                if st.button(
                     "👍 Interested",
                     key=f"like_{idx}"
-                )
+                ):
+
+                    st.success(
+                        f"You liked {item['title']}!"
+                    )
 
             with col2:
-                st.button(
+
+                if st.button(
                     "👎 Skip",
                     key=f"dislike_{idx}"
-                )
+                ):
+
+                    st.warning(
+                        f"You skipped {item['title']}"
+                    )
 
             st.divider()
