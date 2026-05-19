@@ -75,7 +75,18 @@ languages = st.sidebar.multiselect(
         "Korean",
         "Japanese"
     ],
-    default=["English", "Malayalam"]
+    default=["Malayalam"]
+)
+
+content_type = st.sidebar.multiselect(
+    "Content Type",
+    [
+        "Movies",
+        "TV Shows",
+        "Web Series",
+        "Anime"
+    ],
+    default=["Movies", "TV Shows"]
 )
 
 # ---------------------------------------------------
@@ -100,42 +111,86 @@ candidate_content = [
 
     {
         "title": "Dark",
+        "language": "English",
+        "type": "TV Shows",
         "description": "time travel mystery with existential philosophy and emotional complexity"
     },
 
     {
         "title": "Severance",
+        "language": "English",
+        "type": "TV Shows",
         "description": "psychological corporate thriller exploring identity and isolation"
     },
 
     {
         "title": "Arrival",
+        "language": "English",
+        "type": "Movies",
         "description": "emotionally intelligent sci-fi exploring communication and time"
     },
 
     {
         "title": "Joji",
+        "language": "Malayalam",
+        "type": "Movies",
         "description": "slow-burn Malayalam psychological crime drama about greed and loneliness"
     },
 
     {
+        "title": "Kumbalangi Nights",
+        "language": "Malayalam",
+        "type": "Movies",
+        "description": "emotionally rich Malayalam drama exploring relationships and masculinity"
+    },
+
+    {
+        "title": "Bramayugam",
+        "language": "Malayalam",
+        "type": "Movies",
+        "description": "dark atmospheric horror with psychological depth and folklore"
+    },
+
+    {
+        "title": "Manjummel Boys",
+        "language": "Malayalam",
+        "type": "Movies",
+        "description": "survival thriller based on friendship, fear and emotional resilience"
+    },
+
+    {
         "title": "The Bear",
+        "language": "English",
+        "type": "TV Shows",
         "description": "emotionally intense storytelling about trauma, pressure and purpose"
     },
 
     {
         "title": "Paatal Lok",
+        "language": "Hindi",
+        "type": "Web Series",
         "description": "dark Indian crime thriller exploring morality and social decay"
     },
 
     {
         "title": "Signal",
+        "language": "Korean",
+        "type": "TV Shows",
         "description": "Korean mystery thriller involving time communication and serial crimes"
     },
 
     {
         "title": "True Detective",
+        "language": "English",
+        "type": "TV Shows",
         "description": "philosophical crime investigation with psychological darkness"
+    },
+
+    {
+        "title": "Attack on Titan",
+        "language": "Japanese",
+        "type": "Anime",
+        "description": "dark fantasy anime exploring freedom, war and existential conflict"
     }
 ]
 
@@ -151,10 +206,14 @@ def get_platform(title):
         "Severance": "Apple TV+",
         "Arrival": "Amazon Prime Video",
         "Joji": "Amazon Prime Video",
+        "Kumbalangi Nights": "Amazon Prime Video",
+        "Bramayugam": "Sony LIV",
+        "Manjummel Boys": "Disney+ Hotstar",
         "The Bear": "JioHotstar",
         "Paatal Lok": "Amazon Prime Video",
         "Signal": "Netflix",
-        "True Detective": "JioHotstar"
+        "True Detective": "JioHotstar",
+        "Attack on Titan": "Crunchyroll"
     }
 
     return platform_map.get(title, "Search Online")
@@ -198,18 +257,21 @@ if generate:
 
     with st.spinner("Analyzing semantic taste profile..."):
 
-        # Combine user taste + mood
+        # Combine taste + mood
         combined_taste = " ".join(user_taste) + " " + mood
 
-        # Generate user embedding
+        # User embedding
         user_embedding = get_embedding(
             combined_taste
         )
 
-        # Recommendation scoring
         recommendations = []
 
         for item in candidate_content:
+
+            # Skip non-selected content types
+            if item["type"] not in content_type:
+                continue
 
             content_embedding = get_embedding(
                 item["description"]
@@ -220,11 +282,23 @@ if generate:
                 [content_embedding]
             )[0][0]
 
+            # Base semantic score
+            final_score = similarity * 100
+
+            # ---------------------------------------------------
+            # LANGUAGE BOOST
+            # ---------------------------------------------------
+
+            if item["language"] in languages:
+                final_score += 15
+
             recommendations.append({
                 "title": item["title"],
+                "language": item["language"],
+                "type": item["type"],
                 "description": item["description"],
                 "similarity_score": round(
-                    float(similarity) * 100,
+                    float(final_score),
                     2
                 )
             })
@@ -271,13 +345,18 @@ if st.session_state.generated:
             )
 
             st.write(
+                f"🎬 Type: "
+                f"{item['type']}"
+            )
+
+            st.write(
                 f"🎭 Genre: "
                 f"{movie.get('Genre', 'N/A')}"
             )
 
             st.write(
                 f"🌍 Language: "
-                f"{movie.get('Language', 'N/A')}"
+                f"{item['language']}"
             )
 
             st.write(
