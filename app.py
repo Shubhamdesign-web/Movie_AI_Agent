@@ -8,7 +8,7 @@ import requests
 # ---------------------------------------------------
 
 st.set_page_config(
-    page_title="Semantic AI Movie Agent",
+    page_title="Dynamic Semantic AI Movie Agent",
     page_icon="🎬",
     layout="wide"
 )
@@ -37,10 +37,10 @@ if "generated" not in st.session_state:
 # TITLE
 # ---------------------------------------------------
 
-st.title("🎬 Semantic AI Movie Agent")
+st.title("🎬 Dynamic Semantic AI Movie Agent")
 
 st.write(
-    "AI-powered entertainment recommendations using semantic similarity 🧠"
+    "AI-powered personalized entertainment discovery 🧠"
 )
 
 # ---------------------------------------------------
@@ -79,7 +79,7 @@ languages = st.sidebar.multiselect(
 )
 
 content_type = st.sidebar.multiselect(
-    "Content Type",
+    "Content Types",
     [
         "Movies",
         "TV Shows",
@@ -104,121 +104,6 @@ user_taste = [
 ]
 
 # ---------------------------------------------------
-# CANDIDATE CONTENT DATABASE
-# ---------------------------------------------------
-
-candidate_content = [
-
-    {
-        "title": "Joji",
-        "language": "Malayalam",
-        "type": "Movies",
-        "description": "slow-burn Malayalam psychological crime drama about greed and loneliness"
-    },
-
-    {
-        "title": "Kumbalangi Nights",
-        "language": "Malayalam",
-        "type": "Movies",
-        "description": "emotionally rich Malayalam drama exploring relationships and masculinity"
-    },
-
-    {
-        "title": "Bramayugam",
-        "language": "Malayalam",
-        "type": "Movies",
-        "description": "dark atmospheric horror with psychological depth and folklore"
-    },
-
-    {
-        "title": "Manjummel Boys",
-        "language": "Malayalam",
-        "type": "Movies",
-        "description": "survival thriller based on friendship, fear and emotional resilience"
-    },
-
-    {
-        "title": "Dark",
-        "language": "English",
-        "type": "TV Shows",
-        "description": "time travel mystery with existential philosophy and emotional complexity"
-    },
-
-    {
-        "title": "Severance",
-        "language": "English",
-        "type": "TV Shows",
-        "description": "psychological corporate thriller exploring identity and isolation"
-    },
-
-    {
-        "title": "Arrival",
-        "language": "English",
-        "type": "Movies",
-        "description": "emotionally intelligent sci-fi exploring communication and time"
-    },
-
-    {
-        "title": "The Bear",
-        "language": "English",
-        "type": "TV Shows",
-        "description": "emotionally intense storytelling about trauma, pressure and purpose"
-    },
-
-    {
-        "title": "Paatal Lok",
-        "language": "Hindi",
-        "type": "Web Series",
-        "description": "dark Indian crime thriller exploring morality and social decay"
-    },
-
-    {
-        "title": "Signal",
-        "language": "Korean",
-        "type": "TV Shows",
-        "description": "Korean mystery thriller involving time communication and serial crimes"
-    },
-
-    {
-        "title": "True Detective",
-        "language": "English",
-        "type": "TV Shows",
-        "description": "philosophical crime investigation with psychological darkness"
-    },
-
-    {
-        "title": "Attack on Titan",
-        "language": "Japanese",
-        "type": "Anime",
-        "description": "dark fantasy anime exploring freedom, war and existential conflict"
-    }
-]
-
-# ---------------------------------------------------
-# OTT PLATFORM MAPPING
-# ---------------------------------------------------
-
-def get_platform(title):
-
-    platform_map = {
-
-        "Joji": "Amazon Prime Video",
-        "Kumbalangi Nights": "Amazon Prime Video",
-        "Bramayugam": "Sony LIV",
-        "Manjummel Boys": "Disney+ Hotstar",
-        "Dark": "Netflix",
-        "Severance": "Apple TV+",
-        "Arrival": "Amazon Prime Video",
-        "The Bear": "JioHotstar",
-        "Paatal Lok": "Amazon Prime Video",
-        "Signal": "Netflix",
-        "True Detective": "JioHotstar",
-        "Attack on Titan": "Crunchyroll"
-    }
-
-    return platform_map.get(title, "Search Online")
-
-# ---------------------------------------------------
 # OMDB HELPER
 # ---------------------------------------------------
 
@@ -231,7 +116,28 @@ def get_movie_data(title):
     return response.json()
 
 # ---------------------------------------------------
-# OPENAI EMBEDDING FUNCTION
+# OTT PLATFORM MAPPING
+# ---------------------------------------------------
+
+def get_platform(title):
+
+    platform_map = {
+
+        "Dark": "Netflix",
+        "Severance": "Apple TV+",
+        "Joji": "Amazon Prime Video",
+        "Kumbalangi Nights": "Amazon Prime Video",
+        "Bramayugam": "Sony LIV",
+        "Manjummel Boys": "Disney+ Hotstar",
+        "Paatal Lok": "Amazon Prime Video",
+        "Signal": "Netflix",
+        "True Detective": "JioHotstar"
+    }
+
+    return platform_map.get(title, "Search Online")
+
+# ---------------------------------------------------
+# EMBEDDING FUNCTION
 # ---------------------------------------------------
 
 def get_embedding(text):
@@ -247,15 +153,86 @@ def get_embedding(text):
 # GENERATE BUTTON
 # ---------------------------------------------------
 
-generate = st.button("🎯 Generate Semantic Recommendations")
+generate = st.button("🎯 Generate Dynamic Recommendations")
 
 # ---------------------------------------------------
-# MAIN RECOMMENDATION LOGIC
+# MAIN LOGIC
 # ---------------------------------------------------
 
 if generate:
 
-    with st.spinner("Analyzing semantic taste profile..."):
+    with st.spinner("Generating personalized recommendations..."):
+
+        # ---------------------------------------------------
+        # DYNAMIC OPENAI RECOMMENDATION GENERATION
+        # ---------------------------------------------------
+
+        prompt = f"""
+        You are an elite movie and TV recommendation AI.
+
+        USER MOOD:
+        {mood}
+
+        USER LANGUAGE PREFERENCES:
+        {languages}
+
+        CONTENT TYPES:
+        {content_type}
+
+        USER TASTE:
+        {user_taste}
+
+        Generate 15 highly personalized recommendations.
+
+        IMPORTANT:
+        - Prioritize preferred languages strongly
+        - Avoid generic recommendations
+        - Include regional Indian cinema if relevant
+        - Include TV shows/web-series if relevant
+        - Include hidden gems
+        - Recommendations should vary significantly based on mood and language
+
+        Return ONLY:
+        title | short thematic description
+
+        Example:
+        Dark | philosophical sci-fi mystery involving time travel
+        """
+
+        response = client.chat.completions.create(
+            model="gpt-4.1-mini",
+            messages=[
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ]
+        )
+
+        result = response.choices[0].message.content
+
+        lines = result.split("\n")
+
+        candidate_content = []
+
+        for line in lines:
+
+            if "|" in line:
+
+                parts = line.split("|")
+
+                if len(parts) >= 2:
+
+                    candidate_content.append({
+
+                        "title": parts[0].strip(),
+
+                        "description": parts[1].strip()
+                    })
+
+        # ---------------------------------------------------
+        # SEMANTIC RANKING
+        # ---------------------------------------------------
 
         combined_taste = " ".join(user_taste) + " " + mood
 
@@ -267,10 +244,6 @@ if generate:
 
         for item in candidate_content:
 
-            # Skip non-selected content types
-            if item["type"] not in content_type:
-                continue
-
             content_embedding = get_embedding(
                 item["description"]
             )
@@ -280,29 +253,14 @@ if generate:
                 [content_embedding]
             )[0][0]
 
-            # ---------------------------------------------------
-            # FINAL SCORE
-            # ---------------------------------------------------
-
-            final_score = similarity * 100
-
-            # STRONG LANGUAGE PRIORITY
-            if item["language"] in languages:
-
-                final_score += 30
-
-            else:
-
-                final_score -= 20
-
             recommendations.append({
 
                 "title": item["title"],
-                "language": item["language"],
-                "type": item["type"],
+
                 "description": item["description"],
+
                 "similarity_score": round(
-                    float(final_score),
+                    float(similarity * 100),
                     2
                 )
             })
@@ -323,12 +281,12 @@ if generate:
 
 if st.session_state.generated:
 
-    st.success("Semantic Recommendations Ready 🎬")
+    st.success("Recommendations Ready 🎬")
 
     cols = st.columns(2)
 
     for idx, item in enumerate(
-        st.session_state.recommendations[:6]
+        st.session_state.recommendations[:8]
     ):
 
         movie = get_movie_data(item["title"])
@@ -343,13 +301,8 @@ if st.session_state.generated:
                 st.image(poster)
 
             st.write(
-                f"🔥 Semantic Match: "
+                f"🔥 Match Score: "
                 f"{item['similarity_score']}%"
-            )
-
-            st.write(
-                f"🎬 Type: "
-                f"{item['type']}"
             )
 
             st.write(
@@ -359,7 +312,7 @@ if st.session_state.generated:
 
             st.write(
                 f"🌍 Language: "
-                f"{item['language']}"
+                f"{movie.get('Language', 'N/A')}"
             )
 
             st.write(
